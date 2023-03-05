@@ -1,1 +1,7 @@
-Example README
+Running info:
+1. Run local server
+2. Go to local server's url /spotify/login on a browser
+3. Copy the access code + refresh token into the code
+4. Go to url /spotify/playlists to view playlists, find id
+5. Copy to main.py, along with access code + refresh token
+6. Run main.py

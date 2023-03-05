@@ -59,6 +59,9 @@ def get_playlists():
         r = requests.get("https://api.spotify.com/v1/me/playlists?limit=25",
                          headers={"Authorization": "Bearer " + access_token})
         return (r.json(), 200)
+    
+    for playlist in r.json()["items"]:
+        print(f"Playlist name: {playlist['name']} - Playlist id: {playlist['id']}")
 
     return (r.json(), 200)
 
