@@ -9,14 +9,11 @@ import requests
 import random
 from threading import Thread
 
-
-
-access_token = "BQCYY6xhCWE42TcVpFFrHwkKRDURwkA0oGhPb3UA4sGr3ApswmypoIHDLLoQBfGyNbHAXKPAQkyRIK8b1G782q3LsP2bkDekNRRVN-ajsjsJUhVGalU64uB0hytgcp9S-1pzX5VJEhNXt5xKjFDzTIulXAiqL8EUU9kX4S-ZD9REOK9raGpw1dH-GqcnyivXI1H0EqjvQjegF0PvffY354KH"
 refresh_token = "AQDYz4OvOWQBae3YB5spC5vg8WqQvYGYHasox2w_sVO9kWfw62beTFKy1UItJKn9pMiiWw5hvUlk4QqVSvv0w2XYgtTu6EBExInjtm9xf3t0pP89Vadsa_U8f-L8qfA624g"
 playlist_id = "3WSeteAA0wpziNg4tyWcYy"
 
 
-def refresh_token(refresh_token):
+def generate_refresh_token(ref_token):
     # Utility function to refresh the token
     headers = {
         "Authorization": "Basic " + base64_encode("9bde2bdebbc740079240780a10d238c4:1d3064e898e64996a8582d29af80acf4").decode(),
@@ -25,11 +22,10 @@ def refresh_token(refresh_token):
     r = requests.post(
         "https://accounts.spotify.com/api/token", data={
             "grant_type": "refresh_token",
-            "refresh_token": refresh_token,
+            "refresh_token": ref_token,
         }, headers=headers)
+    print(r.json())
     return r.json()["access_token"]
-
-
 
 
 class PowerHourRequest:
@@ -60,11 +56,17 @@ class PowerHourRequest:
         return {"Authorization": "Bearer " + self.access_token}
 
     def make_request(self, url, request_function, data=None):
+        if self.access_token == "":
+            print("Refreshing token...")
+            self.access_token = generate_refresh_token(self.refresh_token)
+            print("Token has been refreshed")
+            # Repeat the same thing again
+            return self.make_request(url, request_function)
         response = request_function(
             url, headers=self.generate_headers(), data=data)
         if response.status_code == 401:
             print("Refreshing token...")
-            self.access_token = refresh_token(self.refresh_token)
+            self.access_token = generate_refresh_token(self.refresh_token)
             print("Token has been refreshed")
             # Repeat the same thing again
             return self.make_request(url, request_function)
@@ -138,7 +140,6 @@ class PowerHourRequest:
 
         self.end_power_hour()
 
-
     def get_hype_part(self, song_id):
         r = self.make_request(
             url="https://api.spotify.com/v1/audio-analysis/" + song_id,
@@ -195,18 +196,18 @@ class PowerHourRequest:
             else:
                 return 0
         return sections[start_position]["start"]
-    
+
 
 def start_power_hour():
     power_hour_request = PowerHourRequest(playlist_id=playlist_id,
-                                        access_token=access_token,
-                                        refresh_token=refresh_token,
-                                        num_songs=60,
-                                        shuffle_playlist=True,
-                                        beer_sound=True,
-                                        time_per_song=60,
-                                        play_final_countdown=True,
-                                        play_halfway_there=True)
+                                          access_token="",
+                                          refresh_token=refresh_token,
+                                          num_songs=60,
+                                          shuffle_playlist=True,
+                                          beer_sound=True,
+                                          time_per_song=60,
+                                          play_final_countdown=True,
+                                          play_halfway_there=True)
     power_hour_request.initiate_power_hour()
 
 
